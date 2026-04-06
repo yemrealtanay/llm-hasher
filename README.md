@@ -318,9 +318,9 @@ The most impactful area for contributors right now is **v2 LLM provider adapters
 
 ## Support the Project
 
-If llm-hasher saves you time or helps protect your users' data, consider supporting its development:
+If llm-hasher saves you time or helps protect your users' data, consider sponsoring its development on GitHub:
 
-[![Ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/yemrealtanay)
+[![GitHub Sponsors](https://img.shields.io/github/sponsors/yemrealtanay?style=social)](https://github.com/sponsors/yemrealtanay)
 
 ---
 
