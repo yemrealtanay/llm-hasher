@@ -1,0 +1,54 @@
+# ─── llm-hasher Configuration ────────────────────────────────────────────────
+# Copy to configs/config.yaml and adjust as needed.
+# Values in ${VAR} format are expanded from environment variables.
+
+server:
+  host: "0.0.0.0"
+  port: 8080
+  read_timeout: "30s"
+  write_timeout: "60s"       # Ollama inference can be slow on large texts
+
+# ─── Ollama (Local PII Detector) ─────────────────────────────────────────────
+ollama:
+  base_url: "http://localhost:11434"
+  model: "llama3.2:3b"       # llama3.1:8b for higher recall at cost of speed
+  timeout: "20s"
+  confidence_threshold: 0.7  # LLM entities below this are ignored
+  chunk_size: 800             # words per chunk before parallel processing
+  num_parallel: 4             # max concurrent Ollama requests for chunked text
+
+  # Restrict which PII types to detect (default: all).
+  # Regex-based types (CREDIT_CARD, EMAIL, PHONE_NUMBER, IP_ADDRESS, BANK_ACCOUNT)
+  # are always fast; LLM is only called for the contextual types below.
+  # enabled_types:
+  #   - CREDIT_CARD
+  #   - PHONE_NUMBER
+  #   - EMAIL
+  #   - PERSON_NAME
+  #   - HOME_ADDRESS
+  #   - NATIONAL_ID
+  #   - BANK_ACCOUNT
+  #   - IP_ADDRESS
+  #   - DATE_OF_BIRTH
+  #   - PASSPORT
+
+# ─── Vault ───────────────────────────────────────────────────────────────────
+vault:
+  db_path: "data/vault.db"
+
+  # Path to 32-byte hex-encoded key file.
+  # Leave empty to auto-generate and persist to data/vault.key (dev only).
+  # In production, use the VAULT_KEY env var (64 hex chars = 32 bytes).
+  key_file: ""
+
+  # Default TTL for token mappings.
+  # "0" = no expiry (recommended for DB-storage scenarios).
+  # Use short TTLs (e.g. "1h") for one-shot LLM proxy calls.
+  default_ttl: "24h"
+
+  # How often to sweep and delete expired contexts.
+  cleanup_interval: "1h"
+
+# ─── General ─────────────────────────────────────────────────────────────────
+general:
+  log_level: "info"          # debug | info | warn | error

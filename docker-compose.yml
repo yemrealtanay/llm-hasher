@@ -1,0 +1,57 @@
+services:
+
+  # ── Ollama: local LLM for PII detection ─────────────────────────────────────
+  ollama:
+    image: ollama/ollama:latest
+    container_name: llm-hasher-ollama
+    restart: unless-stopped
+    volumes:
+      - ollama_models:/root/.ollama
+    ports:
+      - "11434:11434"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:11434/api/tags"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ── Model pull: runs once to ensure llama3.2:3b is available ────────────────
+  ollama-init:
+    image: ollama/ollama:latest
+    container_name: llm-hasher-ollama-init
+    depends_on:
+      ollama:
+        condition: service_healthy
+    entrypoint: ["ollama", "pull", "llama3.2:3b"]
+    environment:
+      - OLLAMA_HOST=http://ollama:11434
+    volumes:
+      - ollama_models:/root/.ollama
+    restart: "no"
+
+  # ── llm-hasher service ───────────────────────────────────────────────────────
+  llm-hasher:
+    build: .
+    container_name: llm-hasher
+    restart: unless-stopped
+    ports:
+      - "8080:8080"
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      - CONFIG_PATH=/app/configs/config.yaml
+    volumes:
+      - ./data:/app/data
+      - ./configs:/app/configs:ro
+    depends_on:
+      ollama-init:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8080/healthz"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+
+volumes:
+  ollama_models:
