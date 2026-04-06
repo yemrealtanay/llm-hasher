@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"strings"
 	"sync"
-	"unicode"
 )
 
 // Detector detects PII entities in text using hybrid regex + Ollama LLM.
@@ -266,22 +265,19 @@ func adjustOffsets(entities []PIIEntity, originalText string, chunkOffset int) [
 	return adjusted
 }
 
-// maskEntities replaces found entity values with placeholder spaces so the LLM
+// maskEntities replaces found entity values with spaces so the LLM
 // doesn't re-detect already-found regex items.
 func maskEntities(text string, entities []PIIEntity) string {
 	if len(entities) == 0 {
 		return text
 	}
-	runes := []rune(text)
+	b := []byte(text)
 	for _, e := range entities {
-		// Convert byte offsets to rune offsets
-		runeStart := len([]rune(text[:e.Start]))
-		runeEnd := len([]rune(text[:e.End]))
-		for i := runeStart; i < runeEnd && i < len(runes); i++ {
-			runes[i] = unicode.ReplacementChar
+		for i := e.Start; i < e.End && i < len(b); i++ {
+			b[i] = ' '
 		}
 	}
-	return string(runes)
+	return string(b)
 }
 
 // Ping checks that the Ollama service is reachable.

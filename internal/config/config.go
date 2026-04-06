@@ -96,13 +96,18 @@ func defaults() *Config {
 	}
 }
 
+// envVarRe matches ${VAR} and ${VAR:-default}
 var envVarRe = regexp.MustCompile(`\$\{([^}]+)\}`)
 
 func expandEnvVars(s string) string {
 	return envVarRe.ReplaceAllStringFunc(s, func(match string) string {
-		key := strings.TrimSuffix(strings.TrimPrefix(match, "${"), "}")
+		inner := strings.TrimSuffix(strings.TrimPrefix(match, "${"), "}")
+		key, fallback, hasFallback := strings.Cut(inner, ":-")
 		if val, ok := os.LookupEnv(key); ok {
 			return val
+		}
+		if hasFallback {
+			return fallback
 		}
 		return match
 	})

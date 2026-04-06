@@ -52,7 +52,16 @@ type rawEntity struct {
 // to prevent hallucination issues.
 func parseOllamaResponse(body []byte, originalText string, threshold float64) ([]PIIEntity, error) {
 	// Strip markdown code fences if present
-	cleaned := stripCodeFences(string(body))
+	cleaned := strings.TrimSpace(stripCodeFences(string(body)))
+	if cleaned == "" || cleaned == "null" {
+		return nil, nil
+	}
+
+	// LLMs sometimes return a single object {} instead of an array [{}].
+	// Normalize to array form before unmarshalling.
+	if strings.HasPrefix(cleaned, "{") {
+		cleaned = "[" + cleaned + "]"
+	}
 
 	var raw []rawEntity
 	if err := json.Unmarshal([]byte(cleaned), &raw); err != nil {

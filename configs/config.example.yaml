@@ -10,7 +10,7 @@ server:
 
 # ─── Ollama (Local PII Detector) ─────────────────────────────────────────────
 ollama:
-  base_url: "http://localhost:11434"
+  base_url: "${OLLAMA_BASE_URL:-http://localhost:11434}"
   model: "llama3.2:3b"       # llama3.1:8b for higher recall at cost of speed
   timeout: "20s"
   confidence_threshold: 0.7  # LLM entities below this are ignored
